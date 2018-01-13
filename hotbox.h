@@ -1,6 +1,6 @@
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.2.0"
+#define MYVERSION "0.2.2R"
 #define ONE_WIRE_BUS D2
 
 
@@ -9,12 +9,15 @@
  double soc = 0; // Variable to keep track of LiPo state-of-charge (SOC)
  bool alert; // Variable to keep track of whether alert has been triggered
  int deviceCount = 0; // Variable for Onewire devices
+// PINS
+ int relay = D3;
 
 
 //Prototypes
  int getDeviceCount();
  void printAddress(DeviceAddress deviceAddress);
- int queryDevices(String command) ;
+ int queryDevices(String command);
+ int relayFunc(String command);
 
 //Declarations
  OneWire oneWire(ONE_WIRE_BUS);
