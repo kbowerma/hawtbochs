@@ -1,6 +1,7 @@
+
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.2.2R"
+#define MYVERSION "0.2.3/1.22.18"
 #define ONE_WIRE_BUS D2
 
 
@@ -9,6 +10,7 @@
  double soc = 0; // Variable to keep track of LiPo state-of-charge (SOC)
  bool alert; // Variable to keep track of whether alert has been triggered
  int deviceCount = 0; // Variable for Onewire devices
+ String temps = "init";
 // PINS
  int relay = D3;
 
@@ -18,10 +20,13 @@
  void printAddress(DeviceAddress deviceAddress);
  int queryDevices(String command);
  int relayFunc(String command);
+ int relayOn(String command);
+ int relayOff(String command);
 
 //Declarations
  OneWire oneWire(ONE_WIRE_BUS);
  DallasTemperature sensor(&oneWire);
+ 
 
 DeviceAddress deviceIndexArray[5];  // Dyanamic array,   I think I only use it for the print
  DeviceAddress ta1 = { 0x28, 0xB6, 0x98, 0x58, 0x06, 0x00, 0x00, 0x37 };
