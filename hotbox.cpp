@@ -2,7 +2,7 @@
 * 0.1.0 Fuel Gauge from MAX17043_Simple
 * 0.2.0 + ds18b20
 * 0.2.3 ad temp as particle variables
-*
+* 0.2.4 interval timer
 */
 
 #include "application.h"
@@ -10,6 +10,7 @@
  #include "lib/SparkDallas/spark-dallas-temperature.h"
  #include "lib/SparkFun_MAX17043_Particle_Library/firmware/SparkFunMAX17043.h"
  #include "lib/streaming/firmware/spark-streaming.h"
+ #include "lib/SparkIntervalTimer/src/SparkIntervalTimer.h"
  #include "hotbox.h"
 
 String myname = "unknown";
@@ -23,23 +24,23 @@ void setup()  {
 	Serial.begin(9600); // Start serial, to output debug data
 	sensor.begin();  // start onewire ds182b20
 
- //FuelGague
+
 	Particle.variable("voltage", voltage);
   	Particle.variable("soc", soc);
   	Particle.variable("alert", alert);
   	Particle.variable("file", FILENAME);
     Particle.variable("version", MYVERSION);
-		Particle.variable("devices",deviceCount);
+  	Particle.variable("devices",deviceCount);
     Particle.variable("temps",temps);
-		Particle.function("q", queryDevices);
+  	Particle.function("q", queryDevices);
     Particle.function("relayon", relayOn) ;
     Particle.function("relayoff", relayOff);
-		Particle.function("relay", relayFunc);
-  	// To read the values from a browser, go to:
-  	// http://api.particle.io/v1/devices/{DEVICE_ID}/{VARIABLE}?access_token={ACCESS_TOKEN}
+  	Particle.function("relay", relayFunc);
+    Particle.function("reset", cloudRestFunction);
+
 	lipo.begin(); // Initialize the MAX17043 LiPo fuel gauge
   	lipo.quickStart(); // Quick start restarts the MAX17043 in hopes of getting a more accurate guess for the SOC.
-    lipo.setThreshold(20); // Set alert threshold to 20%.
+    lipo.setThreshold(40); // Set alert threshold to 20%.
 
  //Need to set the device Index Array at startup
   deviceCount = getDeviceCount();
@@ -47,12 +48,15 @@ void setup()  {
 	Particle.subscribe("particle/device/name", handler);
 	Particle.publish("particle/device/name");
 
-	//pins
-	//pinMode(relay, OUTPUT);
-  pinMode(D3, OUTPUT);
-  pinMode(D4, OUTPUT);
-  pinMode(D5, OUTPUT);
-  pinMode(D6, OUTPUT);
+  //pins
+   pinMode(D3, OUTPUT);
+     pinMode(D4, OUTPUT);
+     pinMode(D5, OUTPUT);
+     pinMode(D6, OUTPUT);
+     pinMode(D7, OUTPUT);  // built in LED
+
+// this is not working
+//  myTimer.begin(getTempHandler,500000, uSec);  // 10 Million = 10 seoncds
 
 }
 
@@ -61,9 +65,6 @@ void loop() {
 	voltage = lipo.getVoltage();
 	soc = lipo.getSOC();
 	alert = lipo.getAlert();
-
-
-
 	delay(500);
 }
 
@@ -88,8 +89,7 @@ void printAddress(DeviceAddress deviceAddress) {
 int queryDevices(String command) {
 
     if(command == "auto" || command == "") {
-    // sets and prints the device array
-        for(int i=0; i < deviceCount; i++ ) {
+        for(int i=0; i < deviceCount; i++ ) { // sets and prints the device array
             sensor.getAddress(deviceIndexArray[i], i);
             Serial.print("Device Index ");
             Serial.print(i);
@@ -99,7 +99,6 @@ int queryDevices(String command) {
         Serial.print("--------------------------------------\n");
         return deviceCount;
     }
-
 		if(command == "t") {
        temps = "";  // reset the variable to empty
 			sensor.requestTemperatures();
@@ -124,11 +123,14 @@ int queryDevices(String command) {
 					//System.sleep(10); this will make it sleep
 				}
 
-
 			}
 			Serial.print("--------------------------------------\n");
 			return deviceCount;
 		}
+    if( command == "now" )  return Time.now();
+    if( command == "uptime" ) return millis()/1000;
+    if( command == "freq" ) return System.ticksPerMicrosecond();
+
 	}
 
 int relayFunc(String command) {
@@ -146,7 +148,7 @@ int relayFunc(String command) {
 }
 
 int relayOn(String command) {
-    Particle.publish("relay ON pin", command);   //publish even to particle cloud
+    Particle.publish(myname + "/relay/on",command);   //publish even to particle cloud
   //  request.path = String("/device/create?type=event&desc=relay%20ON&name=raptor&data=" + command );
     // http.get(request, response, headers);
       // Particle.publish("DEBUG",  request.path);
@@ -167,7 +169,7 @@ int relayOn(String command) {
 }
 
 int relayOff(String command) {
-    Particle.publish("relay off pin", command);
+    Particle.publish(myname + "/relay/off", command);
   //  request.path = String("/device/create?type=event&desc=relay%20Off&name=raptor&data=" + command );
   //   http.get(request, response, headers);
 
@@ -184,4 +186,13 @@ int relayOff(String command) {
 
     }
     else return -1;
+}
+
+void getTempHandler(void) {
+   queryDevices("t");
+ }
+
+int cloudRestFunction(String command) {
+  System.reset();
+  return 1;
 }

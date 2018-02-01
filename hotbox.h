@@ -1,7 +1,7 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.2.3/1.22.18"
+#define MYVERSION "0.2.4b/1.24.18"
 #define ONE_WIRE_BUS D2
 
 
@@ -22,11 +22,17 @@
  int relayFunc(String command);
  int relayOn(String command);
  int relayOff(String command);
+ void getTempHandler(void);
+ int cloudRestFunction(String command);
+
+
+
 
 //Declarations
  OneWire oneWire(ONE_WIRE_BUS);
  DallasTemperature sensor(&oneWire);
- 
+ IntervalTimer myTimer;
+
 
 DeviceAddress deviceIndexArray[5];  // Dyanamic array,   I think I only use it for the print
  DeviceAddress ta1 = { 0x28, 0xB6, 0x98, 0x58, 0x06, 0x00, 0x00, 0x37 };
