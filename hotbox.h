@@ -1,7 +1,7 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.3.0/2.5.18"
+#define MYVERSION "0.4.0/2.5.18"
 #define ONE_WIRE_BUS D2
 
 
@@ -14,6 +14,8 @@
 // PINS
  int relay = D3;
  double Vsource = 0;  // set Voltage for board input
+ unsigned long ra_Interval = 300;  // intervall in seconds (ra = run at)
+ unsigned long ra_lastTime = 0;
 
 
 //Prototypes
@@ -23,8 +25,11 @@
 // int relayFunc(String command);
  int moson(String command);
  int mosoff(String command);
+ int mostoggle(String command);
  void getTempHandler(void);
  int cloudRestFunction(String command);
+ void colorLed(int mydelay);
+// void blinkLed(void);
 
 
 
@@ -32,7 +37,7 @@
 //Declarations
  OneWire oneWire(ONE_WIRE_BUS);
  DallasTemperature sensor(&oneWire);
- IntervalTimer myTimer;
+// IntervalTimer myTimer;
 
 
 DeviceAddress deviceIndexArray[5];  // Dyanamic array,   I think I only use it for the print
@@ -42,5 +47,5 @@ DeviceAddress deviceIndexArray[5];  // Dyanamic array,   I think I only use it f
  DeviceAddress te1 = { 0x28, 0xFA, 0xD1, 0x3A, 0x06, 0x00, 0x00, 0xB2 };
  DeviceAddress tc1 = { 0x28, 0xF5, 0x39, 0xDD, 0x06, 0x00, 0x00, 0xBD };
  DeviceAddress* deviceAddressArray[5] = {  &ta1, &tb1, &tc1, &td1, &te1 };
- String deviceName[5] = {"a1","b1","c1","td1","e1"};
+ String deviceName[5] = {"a1","b1","c1","d1","e1"};
  double deviceTemp[5] = {0.0, 0.0, 0.0, 0.0, 0.0}; //initialize device tempartures

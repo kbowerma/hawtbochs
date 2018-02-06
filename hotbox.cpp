@@ -5,6 +5,8 @@
 * 0.2.4 interval timer
 * 0.2.5 change relay words to mosfet words.
 * 0.3.0 added voltage divider on A3 to measure Vsource
+* 0.3.1 Remoed intervall timer becuase it has too many restrictions
+* 0.4.0 Added basic interval logic, and mostoggle, and logs on interval
 */
 
 #include "application.h"
@@ -12,7 +14,7 @@
  #include "lib/SparkDallas/spark-dallas-temperature.h"
  #include "lib/SparkFun_MAX17043_Particle_Library/firmware/SparkFunMAX17043.h"
  #include "lib/streaming/firmware/spark-streaming.h"
- #include "lib/SparkIntervalTimer/src/SparkIntervalTimer.h"
+// #include "lib/SparkIntervalTimer/src/SparkIntervalTimer.h"
  #include "hotbox.h"
 
 String myname = "unknown";
@@ -38,17 +40,16 @@ void setup()  {
   	Particle.function("q", queryDevices);
     Particle.function("moson", moson) ;
     Particle.function("mosoff", mosoff);
+    Particle.function("mostoggle",mostoggle);
     Particle.function("reset", cloudRestFunction);
 
 	lipo.begin(); // Initialize the MAX17043 LiPo fuel gauge
-  	lipo.quickStart(); // Quick start restarts the MAX17043 in hopes of getting a more accurate guess for the SOC.
+    lipo.quickStart(); // Quick start restarts the MAX17043 in hopes of getting a more accurate guess for the SOC.
     lipo.setThreshold(40); // Set alert threshold to 20%.
-
- //Need to set the device Index Array at startup
-  deviceCount = getDeviceCount();
-  queryDevices("auto");
-	Particle.subscribe("particle/device/name", handler);
-	Particle.publish("particle/device/name");
+    deviceCount = getDeviceCount();
+    queryDevices("auto");
+	  Particle.subscribe("particle/device/name", handler);
+	  Particle.publish("particle/device/name");
 
   //pins
    pinMode(D3, OUTPUT);
@@ -60,7 +61,6 @@ void setup()  {
      pinMode(A5, OUTPUT);
      pinMode(A3,INPUT_PULLDOWN);
 
-
 }
 
 void loop() {
@@ -69,7 +69,17 @@ void loop() {
 	soc = lipo.getSOC();
 	alert = lipo.getAlert();
   Vsource =  ( analogRead(A3) * 3.3 /  (0.2 * 4095 )) ;
-	delay(500);
+
+  //Interval Logic see:  https://community.particle.io/t/millis-and-rollover-tutorial/20429
+  unsigned long now = millis();
+  if ( now - ra_lastTime >= 1000*ra_Interval ) {
+    ra_lastTime = now;
+    queryDevices("t");
+    queryDevices("v");
+    Particle.publish(myname + "/battery/voltage",String(voltage));
+    Particle.publish(myname + "/battery/soc",String(soc));
+  }
+	// delay(500);
 }
 
 // Functions -----------------------------
@@ -115,16 +125,7 @@ int queryDevices(String command) {
 					Particle.publish(myname + "/" + deviceName[i]+"/temp", String(deviceTemp[i]));
           temps.concat(String(deviceTemp[i]).substring(0,4));
           temps.concat(" ");
-
-					RGB.control(true);
-					RGB.color(1,1,255);
-					delay(1000);
-					RGB.color(255,255,0);
-					delay(1000);
-					RGB.color(1,1,255);
-					delay(1000);
-					RGB.control(false);
-					//System.sleep(10); this will make it sleep
+          colorLed(1000);
 				}
 
 			}
@@ -139,7 +140,7 @@ int queryDevices(String command) {
        // Vsource = analogRead(A3);
       //Particle.publish(myname + "/" + deviceName[i]+"/temp", String(deviceTemp[i]));
       // Particle.publish(myname + "/Vin",String((Vsource*3.3/4095)/.20));
-      Particle.publish(myname + "/Vin",String(Vsource));
+      Particle.publish(myname + "/Vs",String(Vsource));
       return int(Vsource*10);
     }
 
@@ -147,12 +148,6 @@ int queryDevices(String command) {
 
 int moson(String command) {
     Particle.publish(myname + "/relay/on",command);   //publish even to particle cloud
-  //  request.path = String("/device/create?type=event&desc=relay%20ON&name=raptor&data=" + command );
-    // http.get(request, response, headers);
-      // Particle.publish("DEBUG",  request.path);
-      // Particle.publish("mresponse",  response.body); //DEBUG
-
-
     if(command != "all") {
         digitalWrite(command.toInt(), HIGH);
         return 1;
@@ -168,10 +163,6 @@ int moson(String command) {
 
 int mosoff(String command) {
     Particle.publish(myname + "/relay/off", command);
-  //  request.path = String("/device/create?type=event&desc=relay%20Off&name=raptor&data=" + command );
-  //   http.get(request, response, headers);
-
-
     if(command != "all") {
         digitalWrite(command.toInt(), LOW);
         return 1;
@@ -186,6 +177,12 @@ int mosoff(String command) {
     else return -1;
 }
 
+int mostoggle(String command) {
+   Particle.publish(myname + "/relay/toggle", command);
+   digitalWrite(command.toInt(),!digitalRead(command.toInt() ));
+   return 1;
+}
+
 void getTempHandler(void) {
    queryDevices("t");
  }
@@ -193,4 +190,15 @@ void getTempHandler(void) {
 int cloudRestFunction(String command) {
   System.reset();
   return 1;
+}
+
+void colorLed(int mydelay) {
+  RGB.control(true);
+  RGB.color(1,1,255);
+  delay(mydelay);
+  RGB.color(255,255,0);
+  delay(mydelay);
+  RGB.color(1,1,255);
+  delay(mydelay);
+  RGB.control(false);
 }
