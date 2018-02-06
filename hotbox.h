@@ -1,7 +1,7 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.2.4b/1.24.18"
+#define MYVERSION "0.3.0/2.5.18"
 #define ONE_WIRE_BUS D2
 
 
@@ -13,15 +13,16 @@
  String temps = "init";
 // PINS
  int relay = D3;
+ double Vsource = 0;  // set Voltage for board input
 
 
 //Prototypes
  int getDeviceCount();
  void printAddress(DeviceAddress deviceAddress);
  int queryDevices(String command);
- int relayFunc(String command);
- int relayOn(String command);
- int relayOff(String command);
+// int relayFunc(String command);
+ int moson(String command);
+ int mosoff(String command);
  void getTempHandler(void);
  int cloudRestFunction(String command);
 

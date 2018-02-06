@@ -3,6 +3,8 @@
 * 0.2.0 + ds18b20
 * 0.2.3 ad temp as particle variables
 * 0.2.4 interval timer
+* 0.2.5 change relay words to mosfet words.
+* 0.3.0 added voltage divider on A3 to measure Vsource
 */
 
 #include "application.h"
@@ -32,10 +34,10 @@ void setup()  {
     Particle.variable("version", MYVERSION);
   	Particle.variable("devices",deviceCount);
     Particle.variable("temps",temps);
+    Particle.variable("Vsource", Vsource);
   	Particle.function("q", queryDevices);
-    Particle.function("relayon", relayOn) ;
-    Particle.function("relayoff", relayOff);
-  	Particle.function("relay", relayFunc);
+    Particle.function("moson", moson) ;
+    Particle.function("mosoff", mosoff);
     Particle.function("reset", cloudRestFunction);
 
 	lipo.begin(); // Initialize the MAX17043 LiPo fuel gauge
@@ -54,9 +56,10 @@ void setup()  {
      pinMode(D5, OUTPUT);
      pinMode(D6, OUTPUT);
      pinMode(D7, OUTPUT);  // built in LED
+     pinMode(A4, OUTPUT);
+     pinMode(A5, OUTPUT);
+     pinMode(A3,INPUT_PULLDOWN);
 
-// this is not working
-//  myTimer.begin(getTempHandler,500000, uSec);  // 10 Million = 10 seoncds
 
 }
 
@@ -65,6 +68,7 @@ void loop() {
 	voltage = lipo.getVoltage();
 	soc = lipo.getSOC();
 	alert = lipo.getAlert();
+  Vsource =  ( analogRead(A3) * 3.3 /  (0.2 * 4095 )) ;
 	delay(500);
 }
 
@@ -130,24 +134,18 @@ int queryDevices(String command) {
     if( command == "now" )  return Time.now();
     if( command == "uptime" ) return millis()/1000;
     if( command == "freq" ) return System.ticksPerMicrosecond();
+    if( command == "v" )
+    {
+       // Vsource = analogRead(A3);
+      //Particle.publish(myname + "/" + deviceName[i]+"/temp", String(deviceTemp[i]));
+      // Particle.publish(myname + "/Vin",String((Vsource*3.3/4095)/.20));
+      Particle.publish(myname + "/Vin",String(Vsource));
+      return int(Vsource*10);
+    }
 
 	}
 
-int relayFunc(String command) {
-  if(command == "on" ) {
-    digitalWrite(relay, HIGH);
-    Particle.publish(myname +"/relay", "API on");
-    return 1;
-  }
-  if(command == "off") {
-		digitalWrite(relay, LOW);
-    Particle.publish(myname + "relay", "API off");
-    return 0;
-  }
-
-}
-
-int relayOn(String command) {
+int moson(String command) {
     Particle.publish(myname + "/relay/on",command);   //publish even to particle cloud
   //  request.path = String("/device/create?type=event&desc=relay%20ON&name=raptor&data=" + command );
     // http.get(request, response, headers);
@@ -168,7 +166,7 @@ int relayOn(String command) {
     else return -1;
 }
 
-int relayOff(String command) {
+int mosoff(String command) {
     Particle.publish(myname + "/relay/off", command);
   //  request.path = String("/device/create?type=event&desc=relay%20Off&name=raptor&data=" + command );
   //   http.get(request, response, headers);
