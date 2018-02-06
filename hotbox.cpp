@@ -14,10 +14,7 @@
  #include "lib/SparkDallas/spark-dallas-temperature.h"
  #include "lib/SparkFun_MAX17043_Particle_Library/firmware/SparkFunMAX17043.h"
  #include "lib/streaming/firmware/spark-streaming.h"
-// #include "lib/SparkIntervalTimer/src/SparkIntervalTimer.h"
  #include "hotbox.h"
-
-String myname = "unknown";
 
 void handler(const char *topic, const char *data) {
 		myname =  String(data);
@@ -34,6 +31,7 @@ void setup()  {
   	Particle.variable("alert", alert);
   	Particle.variable("file", FILENAME);
     Particle.variable("version", MYVERSION);
+    Particle.variable("build_date", BUILD_DATE);
   	Particle.variable("devices",deviceCount);
     Particle.variable("temps",temps);
     Particle.variable("Vsource", Vsource);
@@ -50,9 +48,11 @@ void setup()  {
     queryDevices("auto");
 	  Particle.subscribe("particle/device/name", handler);
 	  Particle.publish("particle/device/name");
+    Particle.publish(myname + "/system_version", System.version().c_str(), 60, PRIVATE);
+    Particle.publish(myname + "/build_date", BUILD_DATE, 60, PRIVATE);
 
   //pins
-   pinMode(D3, OUTPUT);
+  pinMode(D3, OUTPUT);
      pinMode(D4, OUTPUT);
      pinMode(D5, OUTPUT);
      pinMode(D6, OUTPUT);
@@ -84,13 +84,11 @@ void loop() {
 }
 
 // Functions -----------------------------
-
 int getDeviceCount() {
   //sensor.begin();
   deviceCount = sensor.getDeviceCount();
   return deviceCount;
 }
-
 void printAddress(DeviceAddress deviceAddress) {
   for (uint8_t i = 0; i < 8; i++)
   {
@@ -100,7 +98,6 @@ void printAddress(DeviceAddress deviceAddress) {
     Serial.print(deviceAddress[i], HEX);
   }
 }
-
 int queryDevices(String command) {
 
     if(command == "auto" || command == "") {
@@ -146,7 +143,6 @@ int queryDevices(String command) {
     }
 
 	}
-
 int moson(String command) {
     Particle.publish(myname + "/relay/on",command);   //publish even to particle cloud
     if(command != "all") {
@@ -161,7 +157,6 @@ int moson(String command) {
     }
     else return -1;
 }
-
 int mosoff(String command) {
     Particle.publish(myname + "/relay/off", command);
     if(command != "all") {
@@ -177,22 +172,18 @@ int mosoff(String command) {
     }
     else return -1;
 }
-
 int mostoggle(String command) {
    Particle.publish(myname + "/relay/toggle", command);
    digitalWrite(command.toInt(),!digitalRead(command.toInt() ));
    return 1;
 }
-
 void getTempHandler(void) {
    queryDevices("t");
  }
-
 int cloudRestFunction(String command) {
   System.reset();
   return 1;
 }
-
 void colorLed(int mydelay) {
   RGB.control(true);
   RGB.color(1,1,255);

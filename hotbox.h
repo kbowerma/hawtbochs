@@ -1,7 +1,8 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.4.0/2.5.18"
+#define MYVERSION "0.4.0"
+#define BUILD_DATE "2/6/2018"
 #define ONE_WIRE_BUS D2
 
 
@@ -11,8 +12,7 @@
  bool alert; // Variable to keep track of whether alert has been triggered
  int deviceCount = 0; // Variable for Onewire devices
  String temps = "init";
-// PINS
- int relay = D3;
+ String myname = "unknown";
  double Vsource = 0;  // set Voltage for board input
  unsigned long ra_Interval = 300;  // intervall in seconds (ra = run at)
  unsigned long ra_lastTime = 0;
