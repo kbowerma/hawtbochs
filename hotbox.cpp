@@ -71,6 +71,7 @@ void loop() {
   Vsource =  ( analogRead(A3) * 3.3 /  (0.2 * 4095 )) ;
 
   //Interval Logic see:  https://community.particle.io/t/millis-and-rollover-tutorial/20429
+  //TODO add this to a runAt handler Function
   unsigned long now = millis();
   if ( now - ra_lastTime >= 1000*ra_Interval ) {
     ra_lastTime = now;
