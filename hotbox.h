@@ -1,8 +1,8 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.4.0"
-#define BUILD_DATE "2/6/2018"
+#define MYVERSION "0.4.2"
+#define BUILD_DATE "2/12/2018"
 #define ONE_WIRE_BUS D2
 
 
@@ -46,6 +46,7 @@ DeviceAddress deviceIndexArray[5];  // Dyanamic array,   I think I only use it f
  DeviceAddress td1 = { 0x28, 0xC8, 0xA0, 0xDE, 0x06, 0x00, 0x00, 0xD6 };
  DeviceAddress te1 = { 0x28, 0xFA, 0xD1, 0x3A, 0x06, 0x00, 0x00, 0xB2 };
  DeviceAddress tc1 = { 0x28, 0xF5, 0x39, 0xDD, 0x06, 0x00, 0x00, 0xBD };
- DeviceAddress* deviceAddressArray[5] = {  &ta1, &tb1, &tc1, &td1, &te1 };
- String deviceName[5] = {"a1","b1","c1","d1","e1"};
- double deviceTemp[5] = {0.0, 0.0, 0.0, 0.0, 0.0}; //initialize device tempartures
+ DeviceAddress tf1 = { 0x28, 0xED, 0x48, 0xE3, 0x02, 0x00, 0x00, 0x24 };
+ DeviceAddress* deviceAddressArray[6] = {  &ta1, &tb1, &tc1, &td1, &te1, &tf1 };
+ String deviceName[6] = {"a1","b1","c1","d1","e1", "f1"};
+ double deviceTemp[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0}; //initialize device tempartures

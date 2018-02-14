@@ -18,3 +18,14 @@ A3| VoltageMeasure (59)  | D3 | MOSFET 1 __yellow__ / e59
 A2| -  | D2 | 1 wire ds18b20
 A1| -  | D1 |
 A0| -  | D0 |
+
+
+## IN
+Valve A4 (moson 14)
+Fan D4  (moson 4)
+
+
+## OUT
+
+Valve A5 (moson 15 )
+Fan D3

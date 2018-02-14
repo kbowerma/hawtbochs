@@ -7,6 +7,7 @@
 * 0.3.0 added voltage divider on A3 to measure Vsource
 * 0.3.1 Remoed intervall timer becuase it has too many restrictions
 * 0.4.0 Added basic interval logic, and mostoggle, and logs on interval
+* 0.4.2  add fanson,fansoff,open,close
 */
 
 #include "application.h"
@@ -15,6 +16,7 @@
  #include "lib/SparkFun_MAX17043_Particle_Library/firmware/SparkFunMAX17043.h"
  #include "lib/streaming/firmware/spark-streaming.h"
  #include "hotbox.h"
+
 
 void handler(const char *topic, const char *data) {
 		myname =  String(data);
@@ -115,7 +117,7 @@ int queryDevices(String command) {
        temps = "";  // reset the variable to empty
 			sensor.requestTemperatures();
 
-			for(int i=0; i < 5; i++ ) {
+			for(int i=0; i < 6; i++ ) {
 				deviceTemp[i] = sensor.getTempF(*deviceAddressArray[i]);
 				if ( deviceTemp[i] > 0 ) {
         //  String thistemp = String(deviceTemp[i])
@@ -133,13 +135,32 @@ int queryDevices(String command) {
     if( command == "now" )  return Time.now();
     if( command == "uptime" ) return millis()/1000;
     if( command == "freq" ) return System.ticksPerMicrosecond();
-    if( command == "v" )
-    {
+    if( command == "v" )  {
        // Vsource = analogRead(A3);
       //Particle.publish(myname + "/" + deviceName[i]+"/temp", String(deviceTemp[i]));
       // Particle.publish(myname + "/Vin",String((Vsource*3.3/4095)/.20));
       Particle.publish(myname + "/Vs",String(Vsource));
       return int(Vsource*10);
+    }
+    if (command == "open") {
+      moson("14"); //in vavle
+      delay(3000);
+      moson("15"); //out vavle
+    }
+    if (command == "close") {
+      mosoff("14"); //in Fan
+      delay(3000);
+      mosoff("15"); //out fan
+    }
+    if (command == "fanson") {
+      moson("4"); //in Fan
+      delay(3000);
+      moson("3"); //out fan
+    }
+    if (command == "fansoff" ){
+      mosoff("4"); //in Fan
+      delay(3000);
+      mosoff("3"); //out fan
     }
 
 	}
