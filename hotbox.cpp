@@ -9,6 +9,7 @@
 * 0.4.0 Added basic interval logic, and mostoggle, and logs on interval
 * 0.4.2  add fanson,fansoff,open,close
 * 0.5.1  adds thingspeak support and tries to fix not send when 32 degrees
+* 0.5.2 TSL2516 basic understaning
 */
 
 #include "application.h"
@@ -16,8 +17,9 @@
  #include "lib/SparkDallas/spark-dallas-temperature.h"
  #include "lib/SparkFun_MAX17043_Particle_Library/firmware/SparkFunMAX17043.h"
  #include "lib/streaming/firmware/spark-streaming.h"
-#include "lib/thingspeak-particle/firmware/ThingSpeak.h"
-#include "bowerman.h"
+ #include "lib/thingspeak-particle/firmware/ThingSpeak.h"
+ #include "lib/Adafruit_TSL2561/firmware/Adafruit_TSL2561_U.h"
+ #include "bowerman.h"
  #include "hotbox.h"
 
 
@@ -67,6 +69,15 @@ void setup()  {
      pinMode(A3,INPUT_PULLDOWN);
 
   ThingSpeak.begin(client);
+
+  if(!tsl.begin())
+    {
+      /* There was a problem detecting the ADXL345 ... check your connections */
+      Serial.print("Ooops, no TSL2561 detected ... Check your wiring or I2C ADDR!");
+      while(1);
+    }
+    displayTLS2561SensorDetails(); // Display some basic information on this sensor
+    configureTSL2516Sensor(); // Setup the sensor gain and integration time
 
 }
 
@@ -131,26 +142,7 @@ int queryDevices(String command) {
           temps.concat(String(deviceTemp[i]).substring(0,4));
           temps.concat(" ");
           colorLed(1000);
-
-          //ThingSpeak.setField(1,deviceName[i]);
-          //ThingSpeak.setField(2,String(deviceTemp[i]));
-/*
-          switch ( i ) {
-            case 0:
-             ThingSpeak.setField(1,String(deviceTemp[i]));
-             break;
-            case 4:
-             ThingSpeak.setField(2,String(deviceTemp[i]));
-             break;
-            case 5:
-             ThingSpeak.setField(3,String(deviceTemp[i]));
-             break;
-          }
-          */
           ThingSpeak.setField(i+1,String(deviceTemp[i]));
-
-
-        //  ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 				}
 
 
@@ -190,6 +182,12 @@ int queryDevices(String command) {
       delay(3000);
       mosoff("3"); //out fan
     }
+   if (command == "lux") {
+     sensors_event_t event;
+     tsl.getEvent(&event);
+     Particle.publish(myname + "/lux/", String((int)event.light));
+     return event.light;
+   }
 
 	}
 int moson(String command) {
@@ -242,4 +240,35 @@ void colorLed(int mydelay) {
   RGB.color(1,1,255);
   delay(mydelay);
   RGB.control(false);
+}
+void configureTSL2516Sensor(void) {
+  /* You can also manually set the gain or enable auto-gain support */
+  // tsl.setGain(TSL2561_GAIN_1X);      /* No gain ... use in bright light to avoid sensor saturation */
+  // tsl.setGain(TSL2561_GAIN_16X);     /* 16x gain ... use in low light to boost sensitivity */
+  tsl.enableAutoRange(true);            /* Auto-gain ... switches automatically between 1x and 16x */
+
+  /* Changing the integration time gives you better sensor resolution (402ms = 16-bit data) */
+  tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_13MS);      /* fast but low resolution */
+  // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_101MS);  /* medium resolution and speed   */
+  // tsl.setIntegrationTime(TSL2561_INTEGRATIONTIME_402MS);  /* 16-bit data but slowest conversions */
+
+  /* Update these values depending on what you've set above! */
+  Serial.println("------------------------------------");
+  Serial.print  ("Gain:         "); Serial.println("Auto");
+  Serial.print  ("Timing:       "); Serial.println("13 ms");
+  Serial.println("------------------------------------");
+}
+void displayTLS2561SensorDetails(void) {
+  sensor_t sensor;
+  tsl.getSensor(&sensor);
+  Serial.println("------------------------------------");
+  Serial.print  ("Sensor:       "); Serial.println(sensor.name);
+  Serial.print  ("Driver Ver:   "); Serial.println(sensor.version);
+  Serial.print  ("Unique ID:    "); Serial.println(sensor.sensor_id);
+  Serial.print  ("Max Value:    "); Serial.print(sensor.max_value); Serial.println(" lux");
+  Serial.print  ("Min Value:    "); Serial.print(sensor.min_value); Serial.println(" lux");
+  Serial.print  ("Resolution:   "); Serial.print(sensor.resolution); Serial.println(" lux");
+  Serial.println("------------------------------------");
+  Serial.println("");
+  delay(500);
 }

@@ -1,8 +1,8 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.5.1-thingspeak"
-#define BUILD_DATE "2/12/2018"
+#define MYVERSION "0.5.2"
+#define BUILD_DATE "2/14/2018"
 #define ONE_WIRE_BUS D2
 
 
@@ -19,6 +19,7 @@
 
 
 
+
 //Prototypes
  int getDeviceCount();
  void printAddress(DeviceAddress deviceAddress);
@@ -31,6 +32,8 @@
  int cloudRestFunction(String command);
  void colorLed(int mydelay);
 // void blinkLed(void);
+ void displayTLS2561SensorDetails(void);
+ void configureTSL2516Sensor(void);
 
 
 
@@ -39,6 +42,7 @@
  OneWire oneWire(ONE_WIRE_BUS);
  DallasTemperature sensor(&oneWire);
  TCPClient client;  //thingspeak
+ Adafruit_TSL2561_Unified tsl = Adafruit_TSL2561_Unified(TSL2561_ADDR_FLOAT, 12345);
 // IntervalTimer myTimer;
 
 
