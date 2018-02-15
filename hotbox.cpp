@@ -8,6 +8,7 @@
 * 0.3.1 Remoed intervall timer becuase it has too many restrictions
 * 0.4.0 Added basic interval logic, and mostoggle, and logs on interval
 * 0.4.2  add fanson,fansoff,open,close
+* 0.5.1  adds thingspeak support and tries to fix not send when 32 degrees
 */
 
 #include "application.h"
@@ -15,6 +16,7 @@
  #include "lib/SparkDallas/spark-dallas-temperature.h"
  #include "lib/SparkFun_MAX17043_Particle_Library/firmware/SparkFunMAX17043.h"
  #include "lib/streaming/firmware/spark-streaming.h"
+#include "lib/thingspeak-particle/firmware/ThingSpeak.h"
  #include "hotbox.h"
 
 
@@ -62,6 +64,8 @@ void setup()  {
      pinMode(A4, OUTPUT);
      pinMode(A5, OUTPUT);
      pinMode(A3,INPUT_PULLDOWN);
+
+  ThingSpeak.begin(client);
 
 }
 
@@ -119,18 +123,41 @@ int queryDevices(String command) {
 
 			for(int i=0; i < 6; i++ ) {
 				deviceTemp[i] = sensor.getTempF(*deviceAddressArray[i]);
-				if ( deviceTemp[i] > 0 ) {
+				if ( deviceTemp[i] > 0 && deviceTemp[i] != 32) {
         //  String thistemp = String(deviceTemp[i])
 				  Serial << "Device " << deviceName[i] << " temp " <<  deviceTemp[i] << endl;
 					Particle.publish(myname + "/" + deviceName[i]+"/temp", String(deviceTemp[i]));
           temps.concat(String(deviceTemp[i]).substring(0,4));
           temps.concat(" ");
           colorLed(1000);
+
+          //ThingSpeak.setField(1,deviceName[i]);
+          //ThingSpeak.setField(2,String(deviceTemp[i]));
+/*
+          switch ( i ) {
+            case 0:
+             ThingSpeak.setField(1,String(deviceTemp[i]));
+             break;
+            case 4:
+             ThingSpeak.setField(2,String(deviceTemp[i]));
+             break;
+            case 5:
+             ThingSpeak.setField(3,String(deviceTemp[i]));
+             break;
+          }
+          */
+          ThingSpeak.setField(i+1,String(deviceTemp[i]));
+
+
+        //  ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 				}
+
 
 			}
 			Serial.print("--------------------------------------\n");
+      if (temps != "") ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
 			return deviceCount;
+
 		}
     if( command == "now" )  return Time.now();
     if( command == "uptime" ) return millis()/1000;

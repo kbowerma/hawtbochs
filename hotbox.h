@@ -1,7 +1,7 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.4.2"
+#define MYVERSION "0.5.1-thingspeak"
 #define BUILD_DATE "2/12/2018"
 #define ONE_WIRE_BUS D2
 
@@ -16,6 +16,8 @@
  double Vsource = 0;  // set Voltage for board input
  unsigned long ra_Interval = 300;  // intervall in seconds (ra = run at)
  unsigned long ra_lastTime = 0;
+ unsigned long myChannelNumber = 427043;
+ const char * myWriteAPIKey = "K4B1WI14YXNRSKPA";
 
 
 //Prototypes
@@ -37,6 +39,7 @@
 //Declarations
  OneWire oneWire(ONE_WIRE_BUS);
  DallasTemperature sensor(&oneWire);
+ TCPClient client;  //thingspeak
 // IntervalTimer myTimer;
 
 
