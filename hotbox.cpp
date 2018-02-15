@@ -42,6 +42,9 @@ void setup()  {
   	Particle.variable("devices",deviceCount);
     Particle.variable("temps",temps);
     Particle.variable("Vsource", Vsource);
+    Particle.variable("broadband", &broadband);
+    Particle.variable("infrared", &infrared);
+    Particle.variable("lux", lux);
   	Particle.function("q", queryDevices);
     Particle.function("moson", moson) ;
     Particle.function("mosoff", mosoff);
@@ -98,6 +101,10 @@ void loop() {
     Particle.publish(myname + "/battery/voltage",String(voltage));
     Particle.publish(myname + "/battery/soc",String(soc));
   }
+  tsl.getLuminosity(&broadband, &infrared);
+  sensors_event_t event;
+  tsl.getEvent(&event);
+  lux = String((int)event.light);
 	// delay(500);
 }
 
@@ -185,6 +192,11 @@ int queryDevices(String command) {
    if (command == "lux") {
      sensors_event_t event;
      tsl.getEvent(&event);
+
+     tsl.getLuminosity(&broadband, &infrared);
+     Particle.publish("broadband", String(broadband));
+     Particle.publish("infrared", String(infrared));
+
      Particle.publish(myname + "/lux/", String((int)event.light));
      return event.light;
    }
