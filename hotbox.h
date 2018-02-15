@@ -16,8 +16,7 @@
  double Vsource = 0;  // set Voltage for board input
  unsigned long ra_Interval = 300;  // intervall in seconds (ra = run at)
  unsigned long ra_lastTime = 0;
- unsigned long myChannelNumber = 427043;
- const char * myWriteAPIKey = "K4B1WI14YXNRSKPA";
+
 
 
 //Prototypes

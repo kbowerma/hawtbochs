@@ -17,6 +17,7 @@
  #include "lib/SparkFun_MAX17043_Particle_Library/firmware/SparkFunMAX17043.h"
  #include "lib/streaming/firmware/spark-streaming.h"
 #include "lib/thingspeak-particle/firmware/ThingSpeak.h"
+#include "bowerman.h"
  #include "hotbox.h"
 
 
