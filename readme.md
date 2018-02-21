@@ -30,7 +30,7 @@ Fan D4  (moson 4)
 Valve A5 (moson 15 )
 Fan D3
 
-## Lux Reading
+## Lux Reading benchmarks
 LUMU | TSL2561 | YN216 Bars
 -----|------|
 297 | 256 | 0
@@ -43,3 +43,17 @@ LUMU | TSL2561 | YN216 Bars
 7480 | 7161 | 8
 6837 | 6644 | 9
 16570 | 15016 | Flashlight
+
+## TSL2561 pinouts
+
+clr | PORT | PIN | addr | addr
+----|------|-----|------|------|
+brn | SDA | D0 |j6 | d56
+grey | SCL |D1 |k7 |d57
+
+## Valve pinouts
+ f |color| 14 | 15
+---- |-----|------|
+Open |Red | 46 | 35
+Close | blue | 44 | 33
+Ground |Yellow | 39 | 28

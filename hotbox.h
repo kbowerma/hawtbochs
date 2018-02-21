@@ -1,7 +1,7 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.5.2-tsl2561"
+#define MYVERSION "0.5.3"
 #define BUILD_DATE "2/14/2018"
 #define ONE_WIRE_BUS D2
 
@@ -16,9 +16,8 @@
  double Vsource = 0;  // set Voltage for board input
  unsigned long ra_Interval = 300;  // intervall in seconds (ra = run at)
  unsigned long ra_lastTime = 0;
- uint16_t broadband = 0;  //TSL2561
- uint16_t infrared = 0; //TSL2561
- String lux = ""; //TSL2561
+ uint32_t lux = 0; //TSL2561
+
 
 
 

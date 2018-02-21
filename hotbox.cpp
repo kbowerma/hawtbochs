@@ -10,6 +10,7 @@
 * 0.4.2  add fanson,fansoff,open,close
 * 0.5.1  adds thingspeak support and tries to fix not send when 32 degrees
 * 0.5.2 TSL2516 basic understaning
+* 0.5.3  change voltage divder to .211 after moving to internal divider, also added tsl2561
 */
 
 #include "application.h"
@@ -42,8 +43,6 @@ void setup()  {
   	Particle.variable("devices",deviceCount);
     Particle.variable("temps",temps);
     Particle.variable("Vsource", Vsource);
-    Particle.variable("broadband", &broadband);
-    Particle.variable("infrared", &infrared);
     Particle.variable("lux", lux);
   	Particle.function("q", queryDevices);
     Particle.function("moson", moson) ;
@@ -89,7 +88,8 @@ void loop() {
 	voltage = lipo.getVoltage();
 	soc = lipo.getSOC();
 	alert = lipo.getAlert();
-  Vsource =  ( analogRead(A3) * 3.3 /  (0.2 * 4095 )) ;
+  // voltage divider  8.2 / (8.2 + 33 ) == .211
+  Vsource =  ( analogRead(A3) * 3.3 /  (0.199 * 4095 )) ;
 
   //Interval Logic see:  https://community.particle.io/t/millis-and-rollover-tutorial/20429
   //TODO add this to a runAt handler Function
@@ -100,11 +100,14 @@ void loop() {
     queryDevices("v");
     Particle.publish(myname + "/battery/voltage",String(voltage));
     Particle.publish(myname + "/battery/soc",String(soc));
+    Particle.publish(myname + "/lux/",String(lux));
+    ThingSpeak.setField(7,String(lux));
+    ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
   }
-  tsl.getLuminosity(&broadband, &infrared);
+
   sensors_event_t event;
   tsl.getEvent(&event);
-  lux = String((int)event.light);
+  lux = event.light;
 	// delay(500);
 }
 
@@ -124,7 +127,6 @@ void printAddress(DeviceAddress deviceAddress) {
   }
 }
 int queryDevices(String command) {
-
     if(command == "auto" || command == "") {
         for(int i=0; i < deviceCount; i++ ) { // sets and prints the device array
             sensor.getAddress(deviceIndexArray[i], i);
@@ -189,18 +191,6 @@ int queryDevices(String command) {
       delay(3000);
       mosoff("3"); //out fan
     }
-   if (command == "lux") {
-     sensors_event_t event;
-     tsl.getEvent(&event);
-
-     tsl.getLuminosity(&broadband, &infrared);
-     Particle.publish("broadband", String(broadband));
-     Particle.publish("infrared", String(infrared));
-
-     Particle.publish(myname + "/lux/", String((int)event.light));
-     return event.light;
-   }
-
 	}
 int moson(String command) {
     Particle.publish(myname + "/relay/on",command);   //publish even to particle cloud
