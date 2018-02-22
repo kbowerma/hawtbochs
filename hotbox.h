@@ -1,8 +1,8 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.5.3"
-#define BUILD_DATE "2/14/2018"
+#define MYVERSION "0.5.4"
+#define BUILD_DATE "2/21/2018"
 #define ONE_WIRE_BUS D2
 
 

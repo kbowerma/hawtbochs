@@ -10,7 +10,9 @@
 * 0.4.2  add fanson,fansoff,open,close
 * 0.5.1  adds thingspeak support and tries to fix not send when 32 degrees
 * 0.5.2 TSL2516 basic understaning
-* 0.5.3  change voltage divder to .211 after moving to internal divider, also added tsl2561
+* 0.5.3  change voltage divder to .199
+* 0.5.4 Add more thingspeak calls, had to refactor retun outside of if
+*       Moving around pub sub name,   and making thingspeak keys channels dynamic.
 */
 
 #include "application.h"
@@ -26,6 +28,24 @@
 
 void handler(const char *topic, const char *data) {
 		myname =  String(data);
+    Particle.publish(myname + "/system_version", System.version().c_str(), 60, PRIVATE);
+    Particle.publish(myname + "/build_date", BUILD_DATE, 60, PRIVATE);
+    if (myname == "liberty") {
+      myWriteAPIKey = libertyWriteAPIKey;
+      myChannelNumber = libertyChannelNumber;
+    }
+    if (myname == "LakeCreek") {
+      myWriteAPIKey = LakeCreekWriteAPIKey;
+      myChannelNumber = LakeCreekChannelNumber;
+    }
+    IPAddress myIP = WiFi.localIP();
+    String ipStr = String(myIP[0])+"."+String(myIP[1])+"."+String(myIP[2])+"."+String(myIP[3]);
+    Particle.publish(myname + "/LocalIP", ipStr, 60,PRIVATE);
+    String myVersion = System.version().c_str();
+    delay(2000);
+    Particle.publish(myname + "/Version", myVersion, 60,PRIVATE);
+    Particle.publish(myname + "/rssi", String( WiFi.RSSI()), 60, PRIVATE);
+    Particle.publish(myname + "/SSID", String( WiFi.SSID()), 60, PRIVATE);
 }
 
 void setup()  {
@@ -55,10 +75,11 @@ void setup()  {
     lipo.setThreshold(40); // Set alert threshold to 20%.
     deviceCount = getDeviceCount();
     queryDevices("auto");
+    Particle.publish("particle/device/name");
 	  Particle.subscribe("particle/device/name", handler);
-	  Particle.publish("particle/device/name");
-    Particle.publish(myname + "/system_version", System.version().c_str(), 60, PRIVATE);
-    Particle.publish(myname + "/build_date", BUILD_DATE, 60, PRIVATE);
+
+    // Particle.publish(myname + "/system_version", System.version().c_str(), 60, PRIVATE);
+    // Particle.publish(myname + "/build_date", BUILD_DATE, 60, PRIVATE);
 
   //pins
   pinMode(D3, OUTPUT);
@@ -71,6 +92,7 @@ void setup()  {
      pinMode(A3,INPUT_PULLDOWN);
 
   ThingSpeak.begin(client);
+
 
   if(!tsl.begin())
     {
@@ -88,20 +110,21 @@ void loop() {
 	voltage = lipo.getVoltage();
 	soc = lipo.getSOC();
 	alert = lipo.getAlert();
-  // voltage divider  8.2 / (8.2 + 33 ) == .211
+  // voltage divider  8.2 / (8.2 + 33 ) == .199
   Vsource =  ( analogRead(A3) * 3.3 /  (0.199 * 4095 )) ;
 
   //Interval Logic see:  https://community.particle.io/t/millis-and-rollover-tutorial/20429
   //TODO add this to a runAt handler Function
   unsigned long now = millis();
   if ( now - ra_lastTime >= 1000*ra_Interval ) {
-    ra_lastTime = now;
     queryDevices("t");
     queryDevices("v");
+    queryDevices("lux");
     Particle.publish(myname + "/battery/voltage",String(voltage));
     Particle.publish(myname + "/battery/soc",String(soc));
-    Particle.publish(myname + "/lux/",String(lux));
-    ThingSpeak.setField(7,String(lux));
+  //  Particle.publish(myname + "/lux/",String(lux));
+    Particle.publish(myname + "/loop",String(millis()/1000));
+    ra_lastTime = now;
     ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
   }
 
@@ -127,6 +150,7 @@ void printAddress(DeviceAddress deviceAddress) {
   }
 }
 int queryDevices(String command) {
+    int myreturn = 0;
     if(command == "auto" || command == "") {
         for(int i=0; i < deviceCount; i++ ) { // sets and prints the device array
             sensor.getAddress(deviceIndexArray[i], i);
@@ -136,7 +160,7 @@ int queryDevices(String command) {
             Serial.print("\n");
         }
         Serial.print("--------------------------------------\n");
-        return deviceCount;
+        myreturn = deviceCount;
     }
 		if(command == "t") {
        temps = "";  // reset the variable to empty
@@ -157,40 +181,54 @@ int queryDevices(String command) {
 
 			}
 			Serial.print("--------------------------------------\n");
-      if (temps != "") ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
-			return deviceCount;
+      //if (temps != "") ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+			myreturn = deviceCount;
 
 		}
-    if( command == "now" )  return Time.now();
-    if( command == "uptime" ) return millis()/1000;
-    if( command == "freq" ) return System.ticksPerMicrosecond();
+    if( command == "now" )  myreturn = Time.now();
+    if( command == "uptime" ) myreturn = millis()/1000;
+    if( command == "freq" ) myreturn = System.ticksPerMicrosecond();
     if( command == "v" )  {
        // Vsource = analogRead(A3);
       //Particle.publish(myname + "/" + deviceName[i]+"/temp", String(deviceTemp[i]));
       // Particle.publish(myname + "/Vin",String((Vsource*3.3/4095)/.20));
       Particle.publish(myname + "/Vs",String(Vsource));
-      return int(Vsource*10);
+      ThingSpeak.setField(8,String(Vsource));
+    //  ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+      myreturn = int(Vsource*10);
     }
     if (command == "open") {
       moson("14"); //in vavle
       delay(3000);
       moson("15"); //out vavle
+      myreturn = 1;
     }
     if (command == "close") {
       mosoff("14"); //in Fan
       delay(3000);
       mosoff("15"); //out fan
+      myreturn = 1;
     }
     if (command == "fanson") {
       moson("4"); //in Fan
       delay(3000);
       moson("3"); //out fan
+      myreturn = 1;
     }
     if (command == "fansoff" ){
       mosoff("4"); //in Fan
       delay(3000);
       mosoff("3"); //out fan
+      myreturn = 1;
     }
+    if (command == "lux") {
+      Particle.publish(myname + "/lux/",String(lux));
+      ThingSpeak.setField(7,String(lux));
+      myreturn = lux;
+    }
+  //ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+  return myreturn;
+
 	}
 int moson(String command) {
     Particle.publish(myname + "/relay/on",command);   //publish even to particle cloud
