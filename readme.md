@@ -1,8 +1,20 @@
 
+# API
 
-## Mosfet Board
-This board is used like a relay board offering 4 channels
-![](https://images-na.ssl-images-amazon.com/images/I/81XHFEECRBL._SL1500_.jpg)
+## Particle Functions: fan
+***method: setUniversalPWMFAN***
+
+```    
+usage:   fan n_value
+```
+
+* n:  fan number 1 or 2
+* value: 0 - 100
+*  value = 0 = set pwm value to zero and close valve (relay)
+*  value = 1 = set pwm to zero but leave valve open
+
+
+
 
 pin | Function | pin | Function
 ----| ------- | ----| -------
@@ -15,9 +27,9 @@ DAC| - | D6 | MOSFET 4 __pruple__/  e62
 A5| Relay 2  | D5 | MOSFET 3 __blue__ / e61
 A4| Relay 1  | D4 | MOSFET 2 __green__ / e60
 A3| VoltageMeasure (59)  | D3 | MOSFET 1 __yellow__ / e59
-A2| -  | D2 | 1 wire ds18b20
-A1| -  | D1 |
-A0| -  | D0 |
+A2| PWM Fan1  | D2 | 1 wire ds18b20
+A1| -  | D1 | SCL TSL2561
+A0| -  | D0 | SDA TSL2561
 
 
 ## IN
@@ -57,3 +69,8 @@ grey | SCL |D1 |k7 |d57
 Open |Red | 46 | 35
 Close | blue | 44 | 33
 Ground |Yellow | 39 | 28
+
+
+## Mosfet Board
+This board is used like a relay board offering 4 channels
+![](https://images-na.ssl-images-amazon.com/images/I/81XHFEECRBL._SL1500_.jpg)

@@ -13,6 +13,7 @@
 * 0.5.3  change voltage divder to .199
 * 0.5.4 Add more thingspeak calls, had to refactor retun outside of if
 *       Moving around pub sub name,   and making thingspeak keys channels dynamic.
+* 0.6.1 switches to a universal fan function
 */
 
 #include "application.h"
@@ -48,12 +49,13 @@ void handler(const char *topic, const char *data) {
     Particle.publish(myname + "/SSID", String( WiFi.SSID()), 60, PRIVATE);
 }
 
+
 void setup()  {
 	delay(2000);
 	Serial.begin(9600); // Start serial, to output debug data
 	sensor.begin();  // start onewire ds182b20
 
-
+  // Partcile Variables and functions
 	Particle.variable("voltage", voltage);
   	Particle.variable("soc", soc);
   	Particle.variable("alert", alert);
@@ -69,6 +71,9 @@ void setup()  {
     Particle.function("mosoff", mosoff);
     Particle.function("mostoggle",mostoggle);
     Particle.function("reset", cloudRestFunction);
+    Particle.function("fan1", setPWMFAN1);
+    Particle.function("fan2", setPWMFAN2);
+    Particle.function("fan", setUniversalPWMFAN);
 
 	lipo.begin(); // Initialize the MAX17043 LiPo fuel gauge
     lipo.quickStart(); // Quick start restarts the MAX17043 in hopes of getting a more accurate guess for the SOC.
@@ -82,6 +87,7 @@ void setup()  {
     // Particle.publish(myname + "/build_date", BUILD_DATE, 60, PRIVATE);
 
   //pins
+  //int PWMFAN = A2;
   pinMode(D3, OUTPUT);
      pinMode(D4, OUTPUT);
      pinMode(D5, OUTPUT);
@@ -90,6 +96,10 @@ void setup()  {
      pinMode(A4, OUTPUT);
      pinMode(A5, OUTPUT);
      pinMode(A3,INPUT_PULLDOWN);
+     pinMode(FAN1, OUTPUT);  //PWM FAN 1
+     pinMode(FAN2, OUTPUT);  //PWM FAN 2
+     analogWrite(FAN1, 0);
+     analogWrite(FAN2, 0);
 
   ThingSpeak.begin(client);
 
@@ -311,4 +321,70 @@ void displayTLS2561SensorDetails(void) {
   Serial.println("------------------------------------");
   Serial.println("");
   delay(500);
+}
+int setPWMFAN1(String command) {
+  analogWrite(FAN1, command.toInt());
+  delay(1000);
+  //return analogRead(WKP);
+  return command.toInt();
+}
+int setPWMFAN2(String command) {
+  int fanpercent = map(command.toInt(),0,100,0,255);
+  if ( fanpercent > 0 ) digitalWrite(FAN2RELAY, HIGH);
+  analogWrite(FAN2, fanpercent);
+  if ( fanpercent == 0 ) digitalWrite(FAN2RELAY, LOW);
+  return fanpercent;
+}
+int setUniversalPWMFAN(String command) {
+  //int myfan = command.charAt(0);  //49 for 1; 50 for 2
+  int myfan, fanrelay, myvalue, valverelay, fanum = 0;
+  int myfanvalue = command.substring(2).toInt();
+   myvalue = map(myfanvalue,0,100,0,255);
+
+  if ( command.charAt(0) == 49 ) {
+     fanum = 1;
+     myfan = FAN1;
+     fanrelay = FAN1RELAY;
+     valverelay = VALVE1RELAY;
+  }
+  if ( command.charAt(0) == 50 ) {
+     fanum = 2;
+     myfan = FAN2;
+     fanrelay = FAN2RELAY;
+     valverelay = VALVE2RELAY;
+  }
+  // turn off fan and close vavle
+  if (myfanvalue == 0 ) {
+    analogWrite(myfan, myvalue, 1000);  //speed frequency to 100 (50HZ default)
+    digitalWrite(fanrelay, LOW);  // shutoff fan
+    digitalWrite(valverelay, LOW);  // close vavle
+    return 100 * myfan + myvalue;
+  }
+  // turn off fan and open valve
+  if (myfanvalue == 1 ) {
+    analogWrite(myfan, 0, 1000);  // 1 runs the fan still
+    digitalWrite(valverelay, HIGH);  // open vavle
+    digitalWrite(fanrelay, LOW);  // shutoff fan
+    //return 100 * myfan + myvalue;
+    return myvalue;
+  }
+  // open the vavle and set fan
+  if (myfanvalue > 1 ) {
+    analogWrite(myfan, myvalue, 1000);
+    digitalWrite(fanrelay, HIGH);  // TURN on fan
+    digitalWrite(valverelay, HIGH);  // open vavle
+    return 100 * myfan + myvalue;
+  }
+
+
+
+   return -1;
+
+  /*
+  int fanpercent = map(command.toInt(),0,100,0,255);
+  if ( fanpercent > 0 ) digitalWrite(FAN2RELAY, HIGH);
+  analogWrite(FAN2, fanpercent);
+  if ( fanpercent == 0 ) digitalWrite(FAN2RELAY, LOW);
+  return fanpercent;
+  */
 }

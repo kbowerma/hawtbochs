@@ -1,9 +1,19 @@
 
 //defines
 #define FILENAME "hotbox"
-#define MYVERSION "0.5.4"
-#define BUILD_DATE "2/21/2018"
+#define MYVERSION "0.6.1_fan"
+#define BUILD_DATE "2/26/2018"
 #define ONE_WIRE_BUS D2
+#define FAN1 TX
+#define FAN2 RX
+#define FAN1RELAY D3
+#define FAN2RELAY D4
+#define VALVE1RELAY 14
+#define VALVE2RELAY 15
+
+// PWM
+//SystemCoreClock = 120MHz, period = 4000 @ 30Khz
+#define PWM_FREQ 25000 // in Hertz (SET YOUR FREQUENCY)
 
 
 //Globals
@@ -17,6 +27,7 @@
  unsigned long ra_Interval = 300;  // intervall in seconds (ra = run at)
  unsigned long ra_lastTime = 0;
  uint32_t lux = 0; //TSL2561
+
 
 
 
@@ -36,6 +47,9 @@
 // void blinkLed(void);
  void displayTLS2561SensorDetails(void);
  void configureTSL2516Sensor(void);
+ int setPWMFAN1(String command);
+ int setPWMFAN2(String command);
+ int setUniversalPWMFAN(String command);
 
 
 
