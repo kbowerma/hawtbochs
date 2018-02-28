@@ -60,8 +60,8 @@ LUMU | TSL2561 | YN216 Bars
 
 clr | PORT | PIN | addr | addr
 ----|------|-----|------|------|
-brn | SDA | D0 |j6 | d56
-grey | SCL |D1 |k7 |d57
+brn | SDA | D0 |f6 | e56
+grey | SCL |D1 |f7 |d57
 
 ## Valve pinouts
  f |color| 14 | 15
@@ -70,7 +70,17 @@ Open |Red | 46 | 35
 Close | blue | 44 | 33
 Ground |Yellow | 39 | 28
 
+## PWM Fan assignments
+
+
+spring pos | PIN | Jumper pos | colorLed
+------| ---------|---------|-----------|
+f38 | TX | 65 | PURPLE
+f37 | RX | 64 | BROWN
+f36 | WKP | 63| GREY
+
 
 ## Mosfet Board
-This board is used like a relay board offering 4 channels
-![](https://images-na.ssl-images-amazon.com/images/I/81XHFEECRBL._SL1500_.jpg)
+This board is used like a relay board offering 4 channels (NOT USED)
+
+![](https://i.ebayimg.com/images/g/0~sAAOSwaSZZ5iq-/s-l225.jpg)
