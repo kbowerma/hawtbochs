@@ -1,6 +1,8 @@
 
 # HawtBochs
-[![](http://res.cloudinary.com/bowerman/image/upload/c_scale,w_550/v1519847342/DSC_0078.png)](http://res.cloudinary.com/bowerman/image/upload/v1519847342/DSC_0078.png)
+A Particle photon implementation to keep a coldframe from over heating in direct sun.
+
+[![](http://res.cloudinary.com/bowerman/image/upload/c_scale,w_750/v1519847342/DSC_0078.png)](http://res.cloudinary.com/bowerman/image/upload/v1519847342/DSC_0078.png)
 
 
 # API
