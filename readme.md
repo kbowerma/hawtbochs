@@ -75,15 +75,17 @@ grey | SCL |D1 |f7 |d57
 Open |Red | 46 | 35
 Close | blue | 44 | 33
 Ground |Yellow | 39 | 28
+|  |A4 |A5
+|  ***ctl pin*** | 39 | 28
 
 ## PWM Fan assignments
 
 
-spring pos | PIN | Jumper pos | colorLed
-------| ---------|---------|-----------|
-f38 | TX | 65 | PURPLE
-f37 | RX | 64 | BROWN
-f36 | WKP | 63| GREY
+spring pos | PIN | Jumper pos | colorLed | System
+------| ---------|---------|-----------|----|
+f38 | TX | 65 | PURPLE | FAN1
+f37 | RX | 64 | BROWN | FAN2
+f36 | WKP | 63| GREY | unused
 
 
 ## Mosfet Board

@@ -8,8 +8,8 @@
 #define FAN2 RX
 #define FAN1RELAY D3
 #define FAN2RELAY D4
-#define VALVE1RELAY 14
-#define VALVE2RELAY 15
+#define VALVE1RELAY 14 //A4
+#define VALVE2RELAY 15 // A5
 
 // PWM
 //SystemCoreClock = 120MHz, period = 4000 @ 30Khz
